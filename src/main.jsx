@@ -1,0 +1,17 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
+import './App.css'
+import { registerSW } from 'virtual:pwa-register'
+import { Toaster } from "react-hot-toast";
+
+registerSW({ immediate: true })
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+   <>
+  <App />
+  <Toaster position="top-right" />
+</>
+  </React.StrictMode>,
+)
