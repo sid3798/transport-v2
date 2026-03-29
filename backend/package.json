@@ -1,0 +1,16 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "googleapis": "^171.4.0",
+    "open": "^11.0.0",
+    "pdfkit": "^0.17.2",
+    "streamifier": "^0.1.1"
+  }
+}
