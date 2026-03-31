@@ -14,6 +14,26 @@ function Ledger() {
     const [bills, setBills] = useState([]);
     const [search, setSearch] = useState("");
 
+    const [showUnpaidOnly, setShowUnpaidOnly] = useState(false);
+
+    const [sortConfig, setSortConfig] = useState({
+        key: "billNo",
+        direction: "desc"
+    });
+
+    const handleSort = (key) => {
+        let direction = "asc";
+
+        if (sortConfig.key === key && sortConfig.direction === "asc") {
+            direction = "desc";
+        }
+
+        setSortConfig({ key, direction });
+    };
+
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
+
     // 🔥 Fetch all bills
     useEffect(() => {
         const fetchBills = async () => {
@@ -28,43 +48,174 @@ function Ledger() {
         fetchBills();
     }, []);
 
-    // 🔍 Filter by party name
-    const filteredBills = bills.filter(b =>
-        b.msName?.toLowerCase().includes(search.toLowerCase())
-    );
 
+    // date formatting helper
 
     const formatDate = (dateStr) => {
-  if (!dateStr) return "-";
+        if (!dateStr) return "-";
 
-  const date = new Date(dateStr);
+        const date = new Date(dateStr);
 
-  const day = date.getDate();
-  const year = date.getFullYear();
+        const day = date.getDate();
+        const year = date.getFullYear();
 
-  const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
+        const monthNames = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
 
-  const month = monthNames[date.getMonth()];
+        const month = monthNames[date.getMonth()];
 
-  return `${day} ${month} ${year}`;
-};
+        return `${day} ${month} ${year}`;
+    };
+    // date formatting helper
+
+    const [ownerFilter, setOwnerFilter] = useState("ALL");
+
+    // 🔍 Filter by party name
+    const filteredBills = bills.filter(b => {
+
+        const searchText = search.toLowerCase();
+
+        // 🔥 Combine all fields into one string
+        const fullText = `
+    ${b.billNo}
+    ${b.msName}
+    ${b.account}
+    ${b.owner}
+    ${b.status}
+    ${b.paymentMode}
+    ${b.netBalance}
+    ${b.paidAmount}
+    ${formatDate(b.date)}
+    ${b.paymentDate ? formatDate(b.paymentDate) : ""}
+  `.toLowerCase();
+
+        // 🔍 search match
+        const matchSearch = fullText.includes(searchText);
+
+        // 📅 date filter
+        const billDate = new Date(b.date);
+
+        const matchFrom = fromDate ? billDate >= new Date(fromDate) : true;
+        const matchTo = toDate ? billDate <= new Date(toDate) : true;
+
+        // 🔥 status filter
+        const matchStatus = showUnpaidOnly
+            ? b.status !== "PAID"
+            : true;
+
+        const matchOwner =
+  ownerFilter === "ALL" ? true : b.owner === ownerFilter;    
+
+        return matchSearch && matchFrom && matchTo && matchStatus && matchOwner;
+    });
+
+
+
+
+    //// sorting
+    const sortedBills = [...filteredBills].sort((a, b) => {
+
+        if (!sortConfig.key) return 0;
+
+        let valA = a[sortConfig.key] || "";
+        let valB = b[sortConfig.key] || "";
+
+        // 👉 If sorting by DATE
+        if (sortConfig.key === "date" || sortConfig.key === "paymentDate") {
+            valA = new Date(valA);
+            valB = new Date(valB);
+        }
+
+        // 👉 If sorting by BILL NO (like "1 vishal")
+        if (sortConfig.key === "billNo") {
+            valA = parseInt(valA.split(" ")[0]) || 0;
+            valB = parseInt(valB.split(" ")[0]) || 0;
+        }
+
+        // 👉 Normal comparison
+        if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
+
+        return 0;
+    });
+
+    //// sorting
+
+
 
     return (
         <div className="ledger-container">
 
             <h2 className="ledger-title">📋 Bill Ledger</h2>
 
-            {/* 🔍 Search */}
-            <input
-                className="ledger-search"
-                type="text"
-                placeholder="Search by party..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="filters-container">
+
+                {/* 🔍 Search */}
+                <input
+                    className="filter-input search-box"
+                    type="text"
+                    placeholder="Search anything..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+
+                {/* owner filter */}
+                <div className="owner-filter">
+                    
+                    <select
+                        className="filter-input"
+                        value={ownerFilter}
+                        onChange={(e) => setOwnerFilter(e.target.value)}
+                    >
+                        <option value="ALL">All</option>
+                        <option value="SG">SG</option>
+                        <option value="SW">SW</option>
+                    </select>
+                </div>
+                {/* 📅 Date Filters */}
+                <div className="date-group">
+                    <input
+                        type="date"
+                        className="filter-input"
+                        value={fromDate}
+                        onChange={(e) => setFromDate(e.target.value)}
+                    />
+
+                    <span>to</span>
+
+                    <input
+                        type="date"
+                        className="filter-input"
+                        value={toDate}
+                        onChange={(e) => setToDate(e.target.value)}
+                    />
+
+                    <button
+                        className="clear-btn"
+                        onClick={() => {
+                            setFromDate("");
+                            setToDate("");
+                        }}
+                    >
+                        Clear
+                    </button>
+                </div>
+
+                {/* ✅ Checkbox */}
+                <label className="checkbox-label">
+                    <input
+                        type="checkbox"
+                        checked={showUnpaidOnly}
+                        onChange={(e) => setShowUnpaidOnly(e.target.checked)}
+                    />
+                    Unpaid Only
+                </label>
+
+            </div>
+
+
 
             {/* 📊 Table */}
             <div className="ledger-table-wrapper">
@@ -73,28 +224,42 @@ function Ledger() {
                     <thead>
                         <tr>
                             <th>Owner</th>
-                            <th>Bill No</th>
-                            <th>Date</th>
-                            <th>M/s Name</th>
-                            <th>A/c</th>
+                            <th onClick={() => handleSort("billNo")}>
+                                Bill No {sortConfig.key === "billNo" ? (sortConfig.direction === "asc" ? "↑" : "↓") : ""}
+                            </th><th onClick={() => handleSort("date")}>
+                                Date {sortConfig.key === "date" ? (sortConfig.direction === "asc" ? "↑" : "↓") : ""}
+                            </th>
+                            <th onClick={() => handleSort("msName")}>
+                                M/s {sortConfig.key === "msName" ? (sortConfig.direction === "asc" ? "↑" : "↓") : ""}
+                            </th>
+
+                            <th onClick={() => handleSort("account")}>
+                                A/c {sortConfig.key === "account" ? (sortConfig.direction === "asc" ? "↑" : "↓") : ""}
+                            </th>
                             <th>Net Balance</th>
-                            <th>Status</th>
+                            <th onClick={() => handleSort("status")}>
+                                Status {sortConfig.key === "status" ? (sortConfig.direction === "asc" ? "↑" : "↓") : ""}
+                            </th>
 
 
-                            <th>Payment Date</th>
+                            <th onClick={() => handleSort("paymentDate")}>
+                                Payment Date {sortConfig.key === "paymentDate" ? (sortConfig.direction === "asc" ? "↑" : "↓") : ""}
+                            </th>
                             <th>Mode</th>
                             <th>Paid Amount</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        {filteredBills.map((bill) => (
+                        {sortedBills.map((bill) => (
                             <tr
                                 key={bill.id}
+                                className="ledger-row fade-in"
                                 onClick={() => {
                                     setSelectedBill(bill);
                                     setShowModal(true);
                                 }}
+
                                 style={{ cursor: "pointer" }}
                             >
                                 <td>
