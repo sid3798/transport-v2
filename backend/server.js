@@ -21,8 +21,8 @@ async function initDrive() {
 //initDrive();
 
 const DRIVE_FOLDERS = {
-  SW: "13rXGURqcFtgfuGcEALg538qvqQuMbHK4",
-  SG: "1ZWqbYBsUNcUv3eEYR0x58Kvw417KsPoK",
+  SW: "1tukk1VCSvsJ5quvXIUIy_Lvt5kSrF_Nq",
+  SG: "1yAUZZXznLztXhf-0qVC3dEqkSAHU8xLr",
 };
 
 
