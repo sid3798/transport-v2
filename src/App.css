@@ -701,7 +701,7 @@ select {
   /* forward */
 
   .move-right {
-    transform: translateX(190px);
+    transform: translateX(170px);
   }
 
   /* backward */
