@@ -106,7 +106,7 @@ function Ledger() {
             : true;
 
         const matchOwner =
-  ownerFilter === "ALL" ? true : b.owner === ownerFilter;    
+            ownerFilter === "ALL" ? true : b.owner === ownerFilter;
 
         return matchSearch && matchFrom && matchTo && matchStatus && matchOwner;
     });
@@ -163,7 +163,7 @@ function Ledger() {
 
                 {/* owner filter */}
                 <div className="owner-filter">
-                    
+
                     <select
                         className="filter-input"
                         value={ownerFilter}
@@ -223,6 +223,8 @@ function Ledger() {
 
                     <thead>
                         <tr>
+                            <th>Print</th>
+
                             <th>Owner</th>
                             <th onClick={() => handleSort("billNo")}>
                                 Bill No {sortConfig.key === "billNo" ? (sortConfig.direction === "asc" ? "↑" : "↓") : ""}
@@ -247,12 +249,15 @@ function Ledger() {
                             </th>
                             <th>Mode</th>
                             <th>Paid Amount</th>
+
                         </tr>
                     </thead>
 
                     <tbody>
                         {sortedBills.map((bill) => (
                             <tr
+
+
                                 key={bill.id}
                                 className="ledger-row fade-in"
                                 onClick={() => {
@@ -262,6 +267,25 @@ function Ledger() {
 
                                 style={{ cursor: "pointer" }}
                             >
+                                <td>
+                                    <button
+                                        className={`print-btn ${!bill.fileId ? "disabled" : ""}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+
+                                            if (!bill.fileId) {
+                                                alert("PDF not available");
+                                                return;
+                                            }
+
+                                            const url = `https://drive.google.com/file/d/${bill.fileId}/view`;
+                                            window.open(url, "_blank");
+                                        }}
+                                    >
+                                        🖨 Print
+                                    </button>
+                                </td>
+
                                 <td>
                                     <span className={`owner-tag ${bill.owner === "SG" ? "sg" : "sw"}`}>
                                         {bill.owner}

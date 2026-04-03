@@ -284,16 +284,13 @@ doc.on("end", async () => {
     "Content-Disposition",
     `attachment; filename=${billText}.pdf`
   );
-  res.send(pdfBuffer);
+
 
   // Upload to Google Drive
   try {
     const folderId = DRIVE_FOLDERS[data.owner];
 
-
-
-
-await drive.files.create({
+const uploadRes = await drive.files.create({
   requestBody: {
     name: `${billText}.pdf`,
     parents: [folderId]
@@ -302,9 +299,22 @@ await drive.files.create({
     mimeType: "application/pdf",
     body: streamifier.createReadStream(pdfBuffer)
   },
-  fields: "id",
-  supportsAllDrives: true,
-  supportsTeamDrives: true
+  fields: "id"
+});
+
+const fileId = uploadRes.data.id;
+
+await drive.permissions.create({
+  fileId,
+  requestBody: {
+    role: "reader",
+    type: "anyone"
+  }
+});
+
+ res.json({
+  success: true,
+  fileId
 });
 
 

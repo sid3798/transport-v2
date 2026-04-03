@@ -15,6 +15,8 @@ import {
   getDocs
 } from "firebase/firestore";
 
+
+
 console.log("Firebase connected:", db);
 
 
@@ -31,60 +33,60 @@ function Transport() {
 
   const chargeOptions = ["TEA", "UNLOADING", "FREIGHT", "LOADING", "PARKING", "OTHER"];
 
-// auto fetch bill no /////
+  // auto fetch bill no /////
 
-const fetchNextBillNoByOwner = async (selectedOwner) => {
-  try {
-    const q = query(
-      collection(db, "bills"),
-      where("owner", "==", selectedOwner),
-      orderBy("createdAt", "desc"),
-      limit(1)
-    );
+  const fetchNextBillNoByOwner = async (selectedOwner) => {
+    try {
+      const q = query(
+        collection(db, "bills"),
+        where("owner", "==", selectedOwner),
+        orderBy("createdAt", "desc"),
+        limit(1)
+      );
 
-    const snapshot = await getDocs(q);
+      const snapshot = await getDocs(q);
 
-    if (snapshot.empty) {
-      return "1"; // first bill
+      if (snapshot.empty) {
+        return "1"; // first bill
+      }
+
+      const lastBill = snapshot.docs[0].data();
+
+      // extract number from billNo (first part)
+      const lastNo = parseInt(lastBill.billNo.split(" ")[0]) || 0;
+
+      return (lastNo + 1).toString();
+
+    } catch (err) {
+      console.error("Fetch bill no error:", err);
+      return "";
     }
-
-    const lastBill = snapshot.docs[0].data();
-
-    // extract number from billNo (first part)
-    const lastNo = parseInt(lastBill.billNo.split(" ")[0]) || 0;
-
-    return (lastNo + 1).toString();
-
-  } catch (err) {
-    console.error("Fetch bill no error:", err);
-    return "";
-  }
-};
-
-
-// auto fetch bill no /////
-
-/// 🚀 STEP 2: Auto Set Bill No on Owner Change
-
-
-
-useEffect(() => {
-  if (!owner) return;
-
-  const loadBillNo = async () => {
-    const nextNo = await fetchNextBillNoByOwner(owner);
-    setBillNo(nextNo);
   };
 
-  loadBillNo();
-}, [owner]);
+
+  // auto fetch bill no /////
+
+  /// 🚀 STEP 2: Auto Set Bill No on Owner Change
 
 
-useEffect(() => {
-  fetchNextBillNoByOwner(owner).then(setBillNo);
-}, []);
 
-/// 🚀 STEP 2: Auto Set Bill No on Owner Change
+  useEffect(() => {
+    if (!owner) return;
+
+    const loadBillNo = async () => {
+      const nextNo = await fetchNextBillNoByOwner(owner);
+      setBillNo(nextNo);
+    };
+
+    loadBillNo();
+  }, [owner]);
+
+
+  useEffect(() => {
+    fetchNextBillNoByOwner(owner).then(setBillNo);
+  }, []);
+
+  /// 🚀 STEP 2: Auto Set Bill No on Owner Change
 
 
   // -------- AUTOSUGGEST STORAGE --------
@@ -237,7 +239,7 @@ useEffect(() => {
   };
 
 
-  const saveBillToFirebase = async () => {
+  const saveBillToFirebase = async (fileId) => {
     try {
 
       let finalBillNo = billNo;
@@ -247,16 +249,24 @@ useEffect(() => {
         return;
       }
 
-      // 🔍 Duplicate check (FULL string)
-      const q = query(
-        collection(db, "bills"),
-        where("billNo", "==", finalBillNo)
-      );
+      // 🔍 Duplicate check (ONLY NUMBER PART)
+      const newBillNumber = parseInt(finalBillNo.split(" ")[0]);
 
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocs(collection(db, "bills"));
 
-      if (!snapshot.empty) {
-        toast.error("Bill already exists ❌");
+      let isDuplicate = false;
+
+      snapshot.forEach(doc => {
+        const existing = doc.data().billNo;
+        const existingNumber = parseInt(existing.split(" ")[0]);
+
+        if (existingNumber === newBillNumber && doc.data().owner === owner) {
+          isDuplicate = true;
+        }
+      });
+
+      if (isDuplicate) {
+        toast.error("Bill number already exists ❌");
         return;
       }
 
@@ -275,6 +285,8 @@ useEffect(() => {
 
         status: "UNPAID",
 
+        fileId,
+
         createdAt: new Date()
       });
 
@@ -286,75 +298,74 @@ useEffect(() => {
     }
   };
 
-const handleDownloadPDF = async () => {
-  try {
+  const handleDownloadPDF = async () => {
+    let fileId = null;   // ✅ ADD THIS LINE
 
-    // SAVE AUTOSUGGEST VALUES
-    saveFieldValue("msList", msName);
-    saveFieldValue("acList", account);
+    try {
 
-    vehicles.forEach(v => {
-      saveFieldValue("truckList", v.truckNo);
-      saveFieldValue("fromList", v.from);
-      saveFieldValue("toList", v.to);
-      saveFieldValue("yardList", v.mtYard);
-      saveFieldValue("noteList", v.note);
-    });
+      // SAVE AUTOSUGGEST VALUES
+      saveFieldValue("msList", msName);
+      saveFieldValue("acList", account);
 
-    // 🔥 ADD THIS (MISSING PART)
-    //const response = await fetch("http://localhost:5000/generate-pdf", {
-    const response = await fetch("https://transport-v2.onrender.com/generate-pdf", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        owner,
-        billNo,
-        date,
-        msName,
-        account,
-        jobNo,
-        vehicles: vehicles.map(v => ({
-          ...v,
-          charges: v.charges.map(c => ({
-            label:
-              c.label === "OTHER"
-                ? (c.customLabel && c.customLabel.trim() !== ""
+      vehicles.forEach(v => {
+        saveFieldValue("truckList", v.truckNo);
+        saveFieldValue("fromList", v.from);
+        saveFieldValue("toList", v.to);
+        saveFieldValue("yardList", v.mtYard);
+        saveFieldValue("noteList", v.note);
+      });
+
+  
+
+      // 🔥 ADD THIS (MISSING PART)
+      const response = await fetch("http://localhost:5000/generate-pdf", {
+      //  const response = await fetch("https://transport-v2.onrender.com/generate-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          owner,
+          billNo,
+          date,
+          msName,
+          account,
+          jobNo,
+          vehicles: vehicles.map(v => ({
+            ...v,
+            charges: v.charges.map(c => ({
+              label:
+                c.label === "OTHER"
+                  ? (c.customLabel && c.customLabel.trim() !== ""
                     ? c.customLabel
                     : "OTHER")
-                : (c.label || "CHARGE"),
-            amount: Number(c.amount || 0)
+                  : (c.label || "CHARGE"),
+              amount: Number(c.amount || 0)
+            })),
+            total: getRowTotal(v)
           })),
-          total: getRowTotal(v)
-        })),
-        grandTotal,
-        totalAdvance,
-        netBalance,
-      }),
-    });
+          grandTotal,
+          totalAdvance,
+          netBalance,
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error("PDF failed");
+      if (!response.ok) {
+        throw new Error("PDF failed");
+      }
+
+      const result = await response.json();
+      fileId = result.fileId;
+
+      console.log("✅ PDF generated + uploaded to Drive");
+
+    } catch (error) {
+      console.error("PDF Generation Error:", error);
+      toast.error("Failed to generate or upload bill");
     }
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${billNo}.pdf`;
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-
-    console.log("✅ PDF generated + uploaded to Drive");
-
-  } catch (error) {
-    console.error("PDF Generation Error:", error);
-    toast.error("Failed to generate or upload bill");
-  }
-};
+    return fileId;
+  };
 
 
 
@@ -370,7 +381,9 @@ const handleDownloadPDF = async () => {
 
       <div className="floating-bar">
 
-        <button onClick={() => window.location.href = "/ledger"}>
+        <button
+        className="ledger-btn"
+          onClick={() => window.open("/ledger", "_blank")}>
           Ledger
         </button>
 
@@ -416,8 +429,51 @@ const handleDownloadPDF = async () => {
               }, 1000);
             }
 
-            await saveBillToFirebase();   // 🔥 NEW
-            await handleDownloadPDF();    // existing
+
+            // 🔥 STEP 1: VALIDATE FIRST
+            let finalBillNo = billNo;
+
+            if (!finalBillNo || finalBillNo.trim() === "") {
+              toast.error("Enter bill number ❌");
+              return;
+            }
+
+            // 🔍 Duplicate check (same logic from Issue 1)
+            const newBillNumber = parseInt(finalBillNo.split(" ")[0]);
+
+            const snapshot = await getDocs(collection(db, "bills"));
+
+            let isDuplicate = false;
+
+            snapshot.forEach(doc => {
+              const existing = doc.data().billNo;
+              const existingNumber = parseInt(existing.split(" ")[0]);
+
+              if (existingNumber === newBillNumber && doc.data().owner === owner) {
+                isDuplicate = true;
+              }
+            });
+
+            if (isDuplicate) {
+              toast.error("Bill number already exists ❌");
+              return;
+            }
+
+            // 🔥 STEP 2: GENERATE PDF ONLY IF VALID
+            const fileId = await handleDownloadPDF();
+
+            if (!fileId) {
+              toast.error("PDF failed ❌");
+              return;
+            }
+
+            // 🔥 STEP 3: SAVE TO FIREBASE
+            await saveBillToFirebase(fileId);
+
+
+
+
+
           }}
         >
           🖨 Save
