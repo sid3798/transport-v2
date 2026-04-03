@@ -177,7 +177,7 @@ body {
 
 .save-btn {
   background: linear-gradient(135deg, #00d2ee, #ff0000);
-
+  color: white;
   border: none;
   border-radius: 10px;
   padding: 10px 18px;
@@ -731,7 +731,7 @@ select {
   /* forward */
 
   .move-right {
-    transform: translateX(130px);
+    transform: translateX(150px);
   }
 
   /* backward */
@@ -791,7 +791,7 @@ select {
   /* buttons */
   .slider-btn {
     flex: 2;
-    padding: 10px;
+    padding: 5px;
     border: none;
     background: transparent;
     font-weight: 600;
@@ -802,9 +802,6 @@ select {
   }
 
   /* slider */
-
-
-
 
   .vehicle-card {
     margin-top: 30px;
@@ -823,7 +820,27 @@ select {
     grid-template-columns: repeat(3, 1fr);
   }
 
+  .charge-row select {
+    width: 25%;
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+
+  .charge-row input {
+    width: 25%;
+    padding: 6px 8px;
+    font-size: 14px;
+
+  }
+
+
+
+
+
+
 }
+
+/* end of laptop */
 
 .vehicle-header span:last-of-type {
   font-weight: 600;

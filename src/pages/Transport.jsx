@@ -318,8 +318,8 @@ function Transport() {
   
 
       // 🔥 ADD THIS (MISSING PART)
-      const response = await fetch("http://localhost:5000/generate-pdf", {
-      //  const response = await fetch("https://transport-v2.onrender.com/generate-pdf", {
+      //const response = await fetch("http://localhost:5000/generate-pdf", {
+      const response = await fetch("https://transport-v2.onrender.com/generate-pdf", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
