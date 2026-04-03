@@ -6,74 +6,6 @@ body {
 }
 
 
-.company-slider {
-  position: relative;
-  display: flex;
-  width: 100%;
-  max-width:120px;
-  border-radius: 12px;
-  background: #b0cfca;
-  overflow: hidden;
-}
-
-/* slider background */
-
-.slider-bg {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  width: 50%;
-  border-radius: 10px;
-
-  background: linear-gradient(135deg,#ff311e,#00c6ff);
-
-  transition: transform 0.35s ease;
-  z-index: 1;
-  box-shadow: 0 3px 8px rgba(0.80,0.20,0.50,0.85);
-}
-
-.slider-bg.left {
-  transform: translateX(0%);
-}
-
-.slider-bg.right {
-  transform: translateX(100%);
-}
-
-/* buttons */
-
-.slider-btn {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  background: transparent;
-  font-weight: 600;
-  cursor: pointer;
-  z-index: 3;
-}
-
-/* truck */
-
-.truck {
-  position: absolute;
-  font-size: 20px;
-  transition: transform 0.4s ease;
-  z-index: 4;
-}
-
-/* forward */
-
-.move-right {
-  transform: translateX(170px);
-}
-
-/* backward */
-
-.move-left {
-  transform: translateX(10px);
-}
-
-
 
 
 
@@ -674,6 +606,77 @@ charge-row {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+
+
+.company-slider {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width:120px;
+  border-radius: 12px;
+  background: #b0cfca;
+  overflow: hidden;
+}
+
+/* slider background */
+
+.slider-bg {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 50%;
+  border-radius: 10px;
+
+  background: linear-gradient(135deg,#ff311e,#00c6ff);
+
+  transition: transform 0.35s ease;
+  z-index: 1;
+  box-shadow: 0 3px 8px rgba(0.80,0.20,0.50,0.85);
+}
+
+.slider-bg.left {
+  transform: translateX(0%);
+}
+
+.slider-bg.right {
+  transform: translateX(100%);
+}
+
+/* buttons */
+
+.slider-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* truck */
+
+.truck {
+  position: absolute;
+  font-size: 20px;
+  transition: transform 0.4s ease;
+  z-index: 4;
+}
+
+/* forward */
+
+.move-right {
+  transform: translateX(170px);
+}
+
+/* backward */
+
+.move-left {
+  transform: translateX(10px);
+}
+
+
 
 }
 
