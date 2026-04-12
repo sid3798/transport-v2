@@ -840,7 +840,13 @@ select {
 
 }
 
+
 /* end of laptop */
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 .vehicle-header span:last-of-type {
   font-weight: 600;

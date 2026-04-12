@@ -31,7 +31,10 @@ function Transport() {
 
   const [vehicles, setVehicles] = useState([]);
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const chargeOptions = ["TEA", "UNLOADING", "FREIGHT", "LOADING", "PARKING", "OTHER"];
+
 
   // auto fetch bill no /////
 
@@ -315,7 +318,7 @@ function Transport() {
         saveFieldValue("noteList", v.note);
       });
 
-  
+
 
       // 🔥 ADD THIS (MISSING PART)
       //const response = await fetch("http://localhost:5000/generate-pdf", {
@@ -382,7 +385,7 @@ function Transport() {
       <div className="floating-bar">
 
         <button
-        className="ledger-btn"
+          className="ledger-btn"
           onClick={() => window.open("/ledger", "_blank")}>
           Ledger
         </button>
@@ -417,7 +420,10 @@ function Transport() {
 
         <button
           className="save-btn"
+          disabled={isSaving}
           onClick={async () => {
+            if (isSaving) return; // prevent double click
+            setIsSaving(true);
 
             const bill = document.querySelector(".flying-bill");
 
@@ -435,6 +441,7 @@ function Transport() {
 
             if (!finalBillNo || finalBillNo.trim() === "") {
               toast.error("Enter bill number ❌");
+              setIsSaving(false);
               return;
             }
 
@@ -456,6 +463,7 @@ function Transport() {
 
             if (isDuplicate) {
               toast.error("Bill number already exists ❌");
+              setIsSaving(false);
               return;
             }
 
@@ -464,11 +472,13 @@ function Transport() {
 
             if (!fileId) {
               toast.error("PDF failed ❌");
+              setIsSaving(false);
               return;
             }
 
             // 🔥 STEP 3: SAVE TO FIREBASE
             await saveBillToFirebase(fileId);
+            setIsSaving(false);
 
 
 
@@ -476,7 +486,7 @@ function Transport() {
 
           }}
         >
-          🖨 Save
+          {isSaving ? "Saving..." : "🖨 Save"}
         </button>
 
 
