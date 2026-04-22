@@ -1,0 +1,5 @@
+node_modules
+backend/*.json
+backend/config/*.json
+backend/config/*google-oauth.json
+backend/config/*token.json
